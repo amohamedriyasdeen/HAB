@@ -5,7 +5,7 @@ export default defineConfig({
   base: "./",
   plugins: [react()],
   server: {
-    port: 5173
+    port: import.meta.env.VITE_PORT || 5173,
   },
   build: {
     outDir: 'dist',
