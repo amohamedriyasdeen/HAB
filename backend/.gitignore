@@ -15,6 +15,9 @@ node_modules
 .env.local
 .env.*.local
 
+#public/uploads
+public/uploads
+
 # Build output
 dist
 dist-ssr
