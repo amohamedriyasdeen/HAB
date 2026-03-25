@@ -8,9 +8,9 @@ router.get('/', (req, res) => {
   return apiResponse.success(res, 'API is up and running!', {
     version: 'v0',
     endpoints: {
-      health: 'GET /v0/api/health',
-      login: 'POST /v0/api/auth/login',
-      register: 'POST /v0/api/auth/register'
+      health: 'GET /api/health',
+      login: 'POST /api/auth/login',
+      register: 'POST /api/auth/register'
     }
   });
 });

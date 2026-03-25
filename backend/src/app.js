@@ -50,8 +50,8 @@ app.use((req, res, next) => {
 });
 
 // API Routes with auth rate limiter
-app.use('/v0/api/auth', authLimiter);
-app.use('/v0/api', routes);
+app.use('/api/auth', authLimiter);
+app.use('/api', routes);
 
 // Handle 404 for API routes
 app.use((req, res, next) => {
