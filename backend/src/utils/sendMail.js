@@ -14,7 +14,8 @@ const loadTemplate = (templateName, variables = {}) => {
 
 const sendMail = async ({ to, subject, template, variables = {}, html, attachments }) => {
   const content = template ? loadTemplate(template, variables) : html;
-  const mailOptions = { from: env.MAIL_FROM, to, subject, html: content };
+  const from = `"${env.MAIL_FROM_NAME}" <${env.MAIL_FROM_ADDRESS}>`;
+  const mailOptions = { from, to, subject, html: content };
   if (attachments?.length) mailOptions.attachments = attachments;
   return transporter.sendMail(mailOptions);
 };

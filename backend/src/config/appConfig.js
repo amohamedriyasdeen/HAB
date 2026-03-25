@@ -30,7 +30,9 @@ const envSchema = Joi.object({
     MAIL_PORT: Joi.number().port().required(),
     MAIL_USERNAME: Joi.string().required(),
     MAIL_PASSWORD: Joi.string().required(),
-    MAIL_FROM: Joi.string().required(),
+    MAIL_FROM_ADDRESS: Joi.string().email().required(),
+    MAIL_FROM_NAME: Joi.string().default('App'),
+    MAIL_ENCRYPTION: Joi.string().valid('tls', 'ssl', 'none').default('tls'),
 
     OAUTH_PROVIDERS: Joi.string().optional(),
     GOOGLE_CLIENT_ID: Joi.string().optional(),
@@ -81,7 +83,9 @@ const env = {
     MAIL_PORT: value.MAIL_PORT,
     MAIL_USERNAME: value.MAIL_USERNAME,
     MAIL_PASSWORD: value.MAIL_PASSWORD,
-    MAIL_FROM: value.MAIL_FROM,
+    MAIL_FROM_ADDRESS: value.MAIL_FROM_ADDRESS,
+    MAIL_FROM_NAME: value.MAIL_FROM_NAME,
+    MAIL_ENCRYPTION: value.MAIL_ENCRYPTION,
 
     // OAUTH
     OAUTH_PROVIDERS: value.OAUTH_PROVIDERS ? value.OAUTH_PROVIDERS.split(',').map(p => p.trim()) : [],
