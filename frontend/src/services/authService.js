@@ -12,7 +12,11 @@ export const authService = {
   },
 
   oauthRedirect: (provider) => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL_DEV}/auth/${provider}`;
+    const ENV = import.meta.env.VITE_ENV || 'development';
+    const base = ENV === 'production'
+      ? import.meta.env.VITE_API_BASE_URL_PROD
+      : import.meta.env.VITE_API_BASE_URL_DEV;
+    window.location.href = `${base.replace(/\/$/, '')}/auth/${provider}`;
   },
 
   register: async (email, password) => {
