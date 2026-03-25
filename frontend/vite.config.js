@@ -5,7 +5,7 @@ export default ({ mode }) => {
   const env = loadEnv(mode, process.cwd())
 
   return defineConfig({
-    base: "/HAB/",
+    base: "./",
     plugins: [react()],
     server: {
       port: Number(env.VITE_PORT) || 5173
