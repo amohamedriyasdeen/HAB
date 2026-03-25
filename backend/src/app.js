@@ -20,7 +20,7 @@ connectDB().catch(err => {
 });
 
 // CORS configuration for development
-const allowedOrigins = env.FRONTEND_URL ?? [];
+const allowedOrigins = env.ALLOWED_ORIGINS ?? [];
 app.use(cors(getCorsOptions(allowedOrigins)));
 
 // Body parser with size limits

@@ -2,8 +2,9 @@ const Joi = require('joi');
 
 const envSchema = Joi.object({
     PORT: Joi.number().port().required(),
-    BASE_URL: Joi.string().uri().optional(),
-    FRONTEND_URL: Joi.string().required(),
+    BASE_URL: Joi.string().uri().required(),
+    FRONTEND_URL: Joi.string().uri().required(),
+    ALLOWED_ORIGINS: Joi.string().required(),
     NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
 
     MONGODB_URI: Joi.string().uri().required(),
@@ -51,7 +52,8 @@ const env = {
     PORT: value.PORT,
     NODE_ENV: value.NODE_ENV,
     BASE_URL: value.BASE_URL,
-    FRONTEND_URL: value.FRONTEND_URL ? value.FRONTEND_URL.split(',').map(u => u.trim()) : [],
+    FRONTEND_URL: value.FRONTEND_URL.replace(/\/$/, ''),
+    ALLOWED_ORIGINS: value.ALLOWED_ORIGINS.split(',').map(o => o.trim()),
 
     // DataBase
     MONGODB_URI: value.MONGODB_URI,

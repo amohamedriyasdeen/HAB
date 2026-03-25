@@ -1,4 +1,5 @@
-const isSecure = (process.env.BASE_URL || '').startsWith('https');
+const env = require('../config/appConfig');
+const isSecure = (env.BASE_URL || '').startsWith('https');
 
 const base = (httpOnly) => ({
   httpOnly,

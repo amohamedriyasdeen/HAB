@@ -3,6 +3,7 @@ const router = express.Router();
 const passport = require('../config/passport');
 const activeProviders = require('../config/oauthConfig');
 const { login, register, refreshToken, logout, me, verifyToken, forgotPassword, resetPassword, verifyResetToken, oauthCallback } = require('../controllers/auth.controller');
+const env = require('../config/appConfig');
 const { loginSchema, registerSchema, forgotPasswordSchema, resetPasswordSchema } = require('../validators/auth.schema');
 const { validate, validateParams } = require('../validators/validate');
 const { tokenParamSchema } = require('../validators/param.schema');
@@ -22,7 +23,7 @@ router.get('/verify-reset-token/:token', validateParams(tokenParamSchema), verif
 Object.keys(activeProviders).forEach((provider) => {
   router.get(`/${provider}`, passport.authenticate(provider, { session: false }));
   router.get(`/${provider}/callback`,
-    passport.authenticate(provider, { session: false, failureRedirect: `${process.env.FRONTEND_URL}/#/oauth/error` }),
+    passport.authenticate(provider, { session: false, failureRedirect: `${env.FRONTEND_URL}/#/oauth/error` }),
     oauthCallback
   );
 });

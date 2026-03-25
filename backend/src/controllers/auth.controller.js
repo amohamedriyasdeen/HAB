@@ -183,9 +183,9 @@ exports.oauthCallback = async (req, res) => {
     setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
     setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
     setAuthFlagCookie(res, env.NODE_ENV);
-    res.redirect(`${env.FRONTEND_URL[0]}/#/oauth/success`);
+    res.redirect(`${env.FRONTEND_URL}/#/oauth/success`);
   } catch (error) {
-    res.redirect(`${env.FRONTEND_URL[0]}/#/oauth/error?message=${encodeURIComponent(error.message)}`);
+    res.redirect(`${env.FRONTEND_URL}/#/oauth/error?message=${encodeURIComponent(error.message)}`);
   }
 };
 

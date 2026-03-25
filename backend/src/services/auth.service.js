@@ -131,7 +131,7 @@ const forgotPasswordService = async (email) => {
   user.resetTokenExpiry = resetTokenExpiry;
   await user.save();
 
-  const resetLink = `${env.FRONTEND_URL[0]}/#/reset-password?token=${resetToken}`;
+  const resetLink = `${env.FRONTEND_URL}/#/reset-password?token=${resetToken}`;
   await sendMail({
     to: email,
     subject: 'Password Reset Request',
