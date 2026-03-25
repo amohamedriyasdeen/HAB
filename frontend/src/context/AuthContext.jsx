@@ -25,17 +25,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    const data = await authService.login(email, password);
-    setUser(data.data.user);
+    await authService.login(email, password);
+    const data = await authService.checkAuth();
+    setUser(data?.data?.user || null);
     setLoading(false);
-    return data;
   };
 
   const register = async (email, password) => {
-    const data = await authService.register(email, password);
-    setUser(data.data.user);
+    await authService.register(email, password);
+    const data = await authService.checkAuth();
+    setUser(data?.data?.user || null);
     setLoading(false);
-    return data;
   };
 
   const logout = async () => {

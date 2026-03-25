@@ -1,21 +1,17 @@
-const User = require("../models/user.model");
+const User = require('../models/user.model');
 const Role = require('../models/role.model');
-const { uploadFile, deleteFile, resolveFileUrl } = require('../utils/imageUpload');
+const { uploadFile, deleteFile } = require('../utils/fileUpload');
 const { sendMail } = require('../utils/sendMail');
+const env = require('../config/appConfig');
 
 const getUsers = async (userId) => {
   const superAdminRole = await Role.findOne({ name: 'super-admin' }).select('_id');
-  const users = await User.find({ deletedAt: null, roles: { $ne: superAdminRole?._id }, _id: { $ne: userId } })
-    .populate('roles', 'name')
-    .select('-password');
-  return users;
+  return User.find({ deletedAt: null, roles: { $ne: superAdminRole?._id }, _id: { $ne: userId } })
+    .populate('roles', 'name').select('-password');
 };
 
 const getUserById = async (id) => {
-  const user = await User.findOne({ _id: id, deletedAt: null })
-    .populate('roles', 'name')
-    .select('-password');
-  return user;
+  return User.findOne({ _id: id, deletedAt: null }).populate('roles', 'name').select('-password');
 };
 
 const createUser = async (body) => {
@@ -29,8 +25,7 @@ const createUser = async (body) => {
 };
 
 const updateUserById = async (id, body) => {
-  const { userName, mobile, password, confirmPassword } = body;
-
+  const { userName, mobile, password } = body;
   const data = { userName, mobile: mobile || null };
   if (password) data.password = password;
 
@@ -39,8 +34,7 @@ const updateUserById = async (id, body) => {
   await user.save();
 
   const result = await User.findById(id).populate('roles', 'name').select('-password');
-
-  if (password && result) {
+  if (password) {
     await sendMail({
       to: user.email,
       subject: 'Your password has been changed',
@@ -48,53 +42,36 @@ const updateUserById = async (id, body) => {
       variables: { userName: user.userName },
     });
   }
-
   return result;
 };
-const updateStatusById = async (id) => {
-  const user = await User.findById(id);
-  
-  user.isActive = !user.isActive;
-  
-  return await user.save();
-}
-const deleteUserById = async (id) => {
-  const user = await User.findByIdAndUpdate(
-    id,
-    { deletedAt: new Date(), isActive: false },
-    { new: true }
-  );
-  return user;
+
+const updateProfile = async (id, body, file) => {
+  const { firstName, lastName, userName, mobile, address, country, state, city, pincode } = body;
+  const data = { firstName, lastName, mobile: mobile || null, address, country, state, city, pincode };
+
+  if (userName) {
+    const taken = await User.findOne({ userName: userName.toLowerCase(), _id: { $ne: id } });
+    if (taken) throw Object.assign(new Error(`Username "${userName}" is already taken`), { statusCode: 409, field: 'userName' });
+    data.userName = userName.toLowerCase();
+  }
+
+  if (file) {
+    const oldUser = await User.findById(id);
+    if (oldUser?.profile) await deleteFile(oldUser.profile);
+    data.profile = await uploadFile(file, 'uploads/profiles', env.STORAGE_TYPE);
+  }
+
+  return User.findByIdAndUpdate(id, data, { new: true }).populate('roles', 'name').select('-password');
 };
 
-module.exports = { getUsers, getUserById, createUser, updateUserById, updateStatusById, deleteUserById };
+const updateStatusById = async (id) => {
+  const user = await User.findById(id);
+  user.isActive = !user.isActive;
+  return user.save();
+};
 
-// const updateUserById = async (id, req) => {
-//   const { file, body } = req;
-//   const storageType = 'public';  //mention s3 or public
-//   const data = { ...body };
-//   delete data.storageType;
+const deleteUserById = async (id) => {
+  return User.findByIdAndUpdate(id, { deletedAt: new Date(), isActive: false }, { new: true });
+};
 
-//   if (file) {
-//     const oldUser = await User.findById(id);
-//     if (oldUser?.profile) {
-//       await deleteFile(oldUser.profile, oldUser.profileStorageType || storageType);
-//     }
-
-//     if (storageType === 's3') {
-//       data.profile = await uploadFile(file, 'uploads', storageType);
-//     } else {
-//       data.profile = `uploads/${file.filename}`;
-//     }
-//     data.profileStorageType = storageType;
-//   }
-
-//   const user = await User.findByIdAndUpdate(id, data, { new: true })
-//     .populate('roles', 'name')
-//     .select('-password');
-
-//   if (user?.profile) {
-//     user._doc.profileUrl = resolveFileUrl(user.profile, user.profileStorageType || 's3');
-//   }
-//   return user;
-// };
+module.exports = { getUsers, getUserById, createUser, updateUserById, updateProfile, updateStatusById, deleteUserById };

@@ -8,8 +8,9 @@
     "client": "cd frontend && npm run dev",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
     "front:build": "cd frontend && npm run build && xcopy dist ..\\dist /E /I /Y",
-    "move:prodbuild": "sudo rm -rf /var/www/html/* && sudo cp -r dist/* /var/www/html/",
-    "seeder": "cd backend && node src/database/migrations/seeder.js"
+    "seed": "cd backend && node src/database/migrations/seeder.js seed",
+    "truncate:all": "cd backend && node src/database/migrations/seeder.js truncate:all",
+    "truncate:model": "cd backend && node src/database/migrations/seeder.js truncate:model"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

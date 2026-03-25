@@ -2,6 +2,7 @@
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
+const path = require('path');
 
 const routes = require('./routes/index');
 const errorHandler = require('./middleware/error.middleware');
@@ -30,7 +31,8 @@ app.use(cookieParser());
 app.use(passport.initialize());
 
 // Serve static files
-app.use('/uploads', express.static('public/uploads'));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
+app.use('/uploads', (req, res) => res.status(404).end());
 
 // JSON parsing error handler
 app.use((err, req, res, next) => {
@@ -53,8 +55,9 @@ app.use((req, res, next) => {
 app.use('/api/auth', authLimiter);
 app.use('/api', routes);
 
-// Handle 404 for API routes
+// Handle 404 for API routes only — ignore browser-generated requests
 app.use((req, res, next) => {
+  if (!req.path.startsWith('/api')) return res.status(404).end();
   const error = new Error('Route not found');
   error.name = 'ROUTE_NOT_FOUND';
   error.statusCode = 404;

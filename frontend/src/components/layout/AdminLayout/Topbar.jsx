@@ -7,7 +7,7 @@ import Brightness7Icon from '@mui/icons-material/Brightness7';
 import { colorTheme, themeConfig } from '../../../config/themeConfig';
 import { useAuth } from '../../../context/AuthContext';
 
-const settings = ['Profile', 'Account', 'Dashboard', 'Logout'];
+const settings = ['Profile', 'Dashboard', 'Logout'];
 
 export const TopbarConfig = {
   branding: {
@@ -21,7 +21,7 @@ export function TopBar() {
   const navigate = useNavigate();
   const { logout, user } = useAuth();
   const [anchorElUser, setAnchorElUser] = React.useState(null);
-  const profileUrl = user?.profileUrl?.signed_url || user?.profileUrl || null;
+  const profileUrl = user?.profileUrl || undefined;
 
   const handleOpenUserMenu = (event) => {
     setAnchorElUser(event.currentTarget);
@@ -39,8 +39,6 @@ export function TopBar() {
       navigate('/login', { replace: true });
     } else if (setting === 'Profile') {
       navigate('/profile');
-    } else if (setting === 'Account') {
-      navigate('/account');
     } else if (setting === 'Dashboard') {
       navigate('/');
     }

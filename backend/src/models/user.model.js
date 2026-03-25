@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema({
         required: true,
         trim: true,
         lowercase: true,
+        unique: true,
     },
     email: {
         type: String,
@@ -45,11 +46,6 @@ const userSchema = new mongoose.Schema({
     }],
     profile: {
         type: mongoose.Schema.Types.Mixed,
-    },
-    profileStorageType: {
-        type: String,
-        enum: ['s3', 'public'],
-        default: null,
     },
     address: {
         type: String,

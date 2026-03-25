@@ -6,7 +6,7 @@ const apiResponse = require('../utils/apiResponse');
 const { verifyToken } = require('../utils/token');
 const RefreshToken = require('../models/refreshToken.model');
 const User = require('../models/user.model');
-const { resolveFileUrl } = require('../utils/imageUpload');
+const { resolveFileUrl } = require('../utils/fileUpload');
 
 exports.login = async (req, res, next) => {
   try {
@@ -111,11 +111,18 @@ exports.me = async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         mobile: user.mobile,
+        address: user.address,
+        country: user.country,
+        state: user.state,
+        city: user.city,
+        pincode: user.pincode,
         roles: user.roles,
         isActive: user.isActive,
         emailVerifiedAt: user.emailVerifiedAt,
         lastLogin: user.lastLogin,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        profile: user.profile,
+        profileUrl: user.profile ? resolveFileUrl(user.profile) : null,
       }
     }, 200);
   } catch (error) {
@@ -166,8 +173,7 @@ exports.verifyToken = async (req, res, next) => {
         roles: user.roles,
         isActive: user.isActive,
         profile: user.profile,
-        profileStorageType: user.profileStorageType,
-        profileUrl: user.profile ? resolveFileUrl(user.profile, user.profileStorageType || 's3') : null
+        profileUrl: user.profile ? resolveFileUrl(user.profile) : null
       },
       requiresRefresh: false
     }, 200);

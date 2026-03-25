@@ -24,6 +24,7 @@ const envSchema = Joi.object({
     AWS_SECRET_ACCESS_KEY: Joi.string().optional(),
     AWS_REGION: Joi.string().optional(),
     AWS_BUCKET: Joi.string().optional(),
+    STORAGE_TYPE: Joi.string().valid('s3', 'public').default('public'),
 
     MAIL_MAILER: Joi.string().required(),
     MAIL_HOST: Joi.string().required(),
@@ -76,6 +77,7 @@ const env = {
     AWS_SECRET_ACCESS_KEY: value.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: value.AWS_REGION,
     AWS_BUCKET: value.AWS_BUCKET,
+    STORAGE_TYPE: value.STORAGE_TYPE,
 
     // MAIL
     MAIL_MAILER: value.MAIL_MAILER,

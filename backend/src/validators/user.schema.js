@@ -20,4 +20,17 @@ const updateUserSchema = Joi.object({
   }).messages({ 'any.only': 'Passwords do not match' }),
 });
 
-module.exports = { createUserSchema, updateUserSchema };
+const updateProfileSchema = Joi.object({
+  firstName: Joi.string().trim().min(1).max(50).optional().allow(''),
+  lastName:  Joi.string().trim().min(1).max(50).optional().allow(''),
+  userName:  Joi.string().trim().min(3).max(30).lowercase().pattern(/^[a-z0-9_]+$/).optional().allow('')
+    .messages({ 'string.pattern.base': 'Username can only contain letters, numbers and underscores' }),
+  mobile:    Joi.string().pattern(/^[0-9]{7,15}$/).optional().allow(''),
+  address:   Joi.string().trim().max(200).optional().allow(''),
+  country:   Joi.string().optional().allow(''),
+  state:     Joi.string().optional().allow(''),
+  city:      Joi.string().optional().allow(''),
+  pincode:   Joi.string().optional().allow(''),
+});
+
+module.exports = { createUserSchema, updateUserSchema, updateProfileSchema };

@@ -14,7 +14,9 @@ import ForgotPassword from './features/auth/ForgotPassword';
 import ResetPassword from './features/auth/ResetPassword';
 import NotFoundPage from './features/errors/NotFoundPage';
 import ForbiddenPage from './features/errors/ForbiddenPage';
+import ProfilePage from './features/profile/ProfilePage';
 import OAuthCallback from './features/auth/OAuthCallback';
+import { Box, Typography } from '@mui/material';
 
 function OrdersPage() {
   return <Box sx={{ p: 3 }}><Typography variant="h4">Orders</Typography></Box>;
@@ -56,6 +58,7 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route element={<AdminLayout />}>
             <Route path="/" element={<DashboardPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/users" element={<ProtectedRoute roles={['super-admin']}><UsersPage /></ProtectedRoute>} />
             <Route path="/reports" element={<ReportsPage />} />
