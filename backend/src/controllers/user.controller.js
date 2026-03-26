@@ -2,24 +2,24 @@ const { getUsers, getUserById, updateUserById, updateProfile, updateStatusById, 
 const { resolveFileUrl } = require('../utils/fileUpload');
 const apiResponse = require('../utils/apiResponse');
 
-const withProfileUrl = (user) => {
+const withProfileUrl = async (user) => {
   if (!user) return user;
   const obj = user.toObject ? user.toObject() : { ...user };
-  if (obj.profile) obj.profileUrl = resolveFileUrl(obj.profile);
+  if (obj.profile) obj.profileUrl = await resolveFileUrl(obj.profile);
   return obj;
 };
 
 exports.getUsers = async (req, res, next) => {
   try {
     const users = await getUsers(req.user.userId);
-    return apiResponse.success(res, 'Users fetched successfully', { users: users.map(withProfileUrl) }, 200);
+    return apiResponse.success(res, 'Users fetched successfully', { users: await Promise.all(users.map(withProfileUrl)) }, 200);
   } catch (err) { next(err); }
 };
 
 exports.getUser = async (req, res, next) => {
   try {
     const user = await getUserById(req.params.id);
-    return apiResponse.success(res, 'User fetched successfully', { user: withProfileUrl(user) }, 200);
+    return apiResponse.success(res, 'User fetched successfully', { user: await withProfileUrl(user) }, 200);
   } catch (err) { next(err); }
 };
 
@@ -40,7 +40,7 @@ exports.updateUser = async (req, res, next) => {
 exports.updateProfile = async (req, res, next) => {
   try {
     const user = await updateProfile(req.user.userId, req.body, req.file);
-    return apiResponse.success(res, 'Profile updated successfully', { user: withProfileUrl(user) }, 200);
+    return apiResponse.success(res, 'Profile updated successfully', { user: await withProfileUrl(user) }, 200);
   } catch (err) { next(err); }
 };
 
