@@ -122,7 +122,7 @@ exports.me = async (req, res, next) => {
         lastLogin: user.lastLogin,
         createdAt: user.createdAt,
         profile: user.profile,
-        profileUrl: user.profile ? resolveFileUrl(user.profile) : null,
+        profileUrl: user.profile ? await resolveFileUrl(user.profile) : null,
       }
     }, 200);
   } catch (error) {
@@ -173,7 +173,7 @@ exports.verifyToken = async (req, res, next) => {
         roles: user.roles,
         isActive: user.isActive,
         profile: user.profile,
-        profileUrl: user.profile ? resolveFileUrl(user.profile) : null
+        profileUrl: user.profile ? await resolveFileUrl(user.profile) : null
       },
       requiresRefresh: false
     }, 200);
