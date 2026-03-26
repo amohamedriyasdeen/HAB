@@ -3,6 +3,7 @@ const Joi = require('joi');
 const envSchema = Joi.object({
     PORT: Joi.number().port().required(),
     BASE_URL: Joi.string().uri().required(),
+    STATIC_URL: Joi.string().uri().optional(),
     FRONTEND_URL: Joi.string().uri().required(),
     ALLOWED_ORIGINS: Joi.string().required(),
     NODE_ENV: Joi.string().valid('development', 'production', 'test').default('development'),
@@ -55,6 +56,7 @@ const env = {
     PORT: value.PORT,
     NODE_ENV: value.NODE_ENV,
     BASE_URL: value.BASE_URL,
+    STATIC_URL: (value.STATIC_URL || value.BASE_URL).replace(/\/$/, ''),
     FRONTEND_URL: value.FRONTEND_URL.replace(/\/$/, ''),
     ALLOWED_ORIGINS: value.ALLOWED_ORIGINS.split(',').map(o => o.trim()),
 

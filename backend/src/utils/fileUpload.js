@@ -60,7 +60,6 @@ const uploadFile = async (file, folder, storageType = env.STORAGE_TYPE || 'publi
     return { s3_path: key };
   }
   // local: multer diskStorage already saved the file with file.filename — use that exact name
-  console.log(`${folder}/${file.filename}`);
   return `${folder}/${file.filename}`;
 };
 
@@ -91,9 +90,9 @@ const resolveFileUrl = async (stored) => {
     return url;
   }
   if (isLocal(stored)) {
-    return `${env.BASE_URL}/${stored}`;
+    return `${env.STATIC_URL}/${stored}`;
   }
-  return stored; // already a full URL (e.g. OAuth avatar)
+  return stored;
 };
 
 module.exports = { uploadSingle, uploadFile, deleteFile, resolveFileUrl, isS3, isLocal };
