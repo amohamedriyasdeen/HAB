@@ -14,6 +14,9 @@ const apiResponse = require('./utils/apiResponse');
 
 const app = express();
 
+// Trust nginx reverse proxy
+if (env.NODE_ENV === 'production') app.set('trust proxy', 1);
+
 // Connect DB with error handling
 connectDB().catch(err => {
   console.log('Database connection failed:', err);

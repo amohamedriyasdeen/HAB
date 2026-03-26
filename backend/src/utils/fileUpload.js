@@ -2,12 +2,10 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const env = require('../config/appConfig');
+const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
-// Lazy-load S3 only if configured
-const getS3 = () => {
-  const { s3, bucket } = require('../config/s3Config');
-  return { s3, bucket };
-};
+const getS3 = () => require('../config/s3Config');
 
 // --- Storage detection ---
 // S3 stored value is always an object: { s3_path: 'folder/file.jpg' }
@@ -58,7 +56,7 @@ const uploadFile = async (file, folder, storageType = env.STORAGE_TYPE || 'publi
     const { s3, bucket } = getS3();
     const filename = `${Date.now()}-${file.originalname}`;
     const key = `${folder}/${filename}`;
-    await s3.upload({ Bucket: bucket, Key: key, Body: file.buffer, ContentType: file.mimetype }).promise();
+    await s3.send(new PutObjectCommand({ Bucket: bucket, Key: key, Body: file.buffer, ContentType: file.mimetype }));
     return { s3_path: key };
   }
   // local: multer diskStorage already saved the file with file.filename — use that exact name
@@ -72,7 +70,7 @@ const deleteFile = async (stored) => {
   try {
     if (isS3(stored)) {
       const { s3, bucket } = getS3();
-      await s3.deleteObject({ Bucket: bucket, Key: stored.s3_path }).promise();
+      await s3.send(new DeleteObjectCommand({ Bucket: bucket, Key: stored.s3_path }));
     } else if (isLocal(stored)) {
       const full = path.join(__dirname, '../../public', stored);
       if (fs.existsSync(full)) fs.unlinkSync(full);
@@ -85,11 +83,12 @@ const deleteFile = async (stored) => {
 // --- Resolve to public URL ---
 // S3  → signed URL (valid 5 min)
 // Local → BASE_URL/uploads/... (served by express static)
-const resolveFileUrl = (stored) => {
+const resolveFileUrl = async (stored) => {
   if (!stored) return null;
   if (isS3(stored)) {
     const { s3, bucket } = getS3();
-    return s3.getSignedUrl('getObject', { Bucket: bucket, Key: stored.s3_path, Expires: 300 });
+    const url = await getSignedUrl(s3, new GetObjectCommand({ Bucket: bucket, Key: stored.s3_path }), { expiresIn: 300 });
+    return url;
   }
   if (isLocal(stored)) {
     return `${env.BASE_URL}/${stored}`;
