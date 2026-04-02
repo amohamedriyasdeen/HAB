@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import { useAuth } from '../../context/AuthContext';
 import { authService } from '../../services/authService';
+import { IS_TOKEN_MODE, tokenStorage } from '../../config/authConfig';
 
 function OAuthCallback({ status }) {
   const navigate = useNavigate();
@@ -17,7 +18,16 @@ function OAuthCallback({ status }) {
       return;
     }
 
-    // status === 'success' — cookies already set by backend, just fetch user
+    if (IS_TOKEN_MODE) {
+      const accessToken  = searchParams.get('accessToken');
+      const refreshToken = searchParams.get('refreshToken');
+      if (!accessToken) {
+        navigate('/login', { replace: true });
+        return;
+      }
+      tokenStorage.setTokens(accessToken, refreshToken);
+    }
+
     authService.checkAuth()
       .then(data => {
         const user = data?.data?.user;
@@ -29,7 +39,7 @@ function OAuthCallback({ status }) {
         }
       })
       .catch(() => navigate('/login', { replace: true }));
-  }, []);
+  }, [status, navigate, searchParams, setUser]);
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', gap: 2 }}>

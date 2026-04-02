@@ -2,21 +2,35 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { authService } from '../services/authService';
 import { updateUser as updateUserApi } from '../services/userApi';
+import { IS_TOKEN_MODE, tokenStorage } from '../config/authConfig';
 
 const AuthContext = createContext(null);
 
-const isAuthCookiePresent = () => document.cookie.split(';').some(c => c.trim().startsWith('isAuthenticated='));
+const isAuthCookiePresent = () =>
+  document.cookie.split(';').some(c => c.trim().startsWith('isAuthenticated='));
+
+const shouldCheckAuth = () =>
+  IS_TOKEN_MODE ? tokenStorage.hasToken() || !!tokenStorage.getRefresh() : isAuthCookiePresent();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser]       = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAuth = async () => {
-      if (!isAuthCookiePresent()) {
-        setLoading(false);
-        return;
+      if (!shouldCheckAuth()) { setLoading(false); return; }
+
+      if (IS_TOKEN_MODE && !tokenStorage.hasToken() && tokenStorage.getRefresh()) {
+        try {
+          const res = await api.post('/auth/refresh-token', { refreshToken: tokenStorage.getRefresh() });
+          const newAccess = res.data?.data?.accessToken;
+          if (newAccess) tokenStorage.setAccess(newAccess);
+          else { tokenStorage.clearTokens(); setLoading(false); return; }
+        } catch {
+          tokenStorage.clearTokens(); setLoading(false); return;
+        }
       }
+
       const data = await authService.checkAuth();
       setUser(data?.data?.user || null);
       setLoading(false);
@@ -25,17 +39,13 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const login = async (email, password) => {
-    await authService.login(email, password);
-    const data = await authService.checkAuth();
-    setUser(data?.data?.user || null);
-    setLoading(false);
+    const res = await authService.login(email, password);
+    setUser(res?.data?.user || null);
   };
 
-  const register = async (email, password) => {
-    await authService.register(email, password);
-    const data = await authService.checkAuth();
-    setUser(data?.data?.user || null);
-    setLoading(false);
+  const register = async (email, password, mobile) => {
+    const res = await authService.register(email, password, mobile);
+    setUser(res?.data?.user || null);
   };
 
   const logout = async () => {
@@ -66,8 +76,6 @@ AuthProvider.propTypes = {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within AuthProvider');
   return context;
 };

@@ -1,12 +1,15 @@
 const env = require('../config/appConfig');
-const isSecure = (env.BASE_URL || '').startsWith('https');
+const getIsSecure = () => (require('../config/appConfig')?.BASE_URL || '').startsWith('https');
 
-const base = (httpOnly) => ({
-  httpOnly,
-  secure: isSecure,
-  sameSite: isSecure ? 'none' : 'lax',
-  path: '/',
-});
+const base = (httpOnly) => {
+  const isSecure = getIsSecure();
+  return {
+    httpOnly,
+    secure: isSecure,
+    sameSite: isSecure ? 'none' : 'lax',
+    path: '/',
+  };
+};
 
 exports.setCookies = (res, tokenType, token, _nodeEnv, age) => {
   res.cookie(tokenType, token, { ...base(true), maxAge: age });

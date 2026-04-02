@@ -2,7 +2,7 @@ const crypto = require('crypto');
 const User = require('../models/user.model');
 const Role = require('../models/role.model');
 const RefreshToken = require('../models/refreshToken.model');
-const { generateAccessToken, generateRefreshToken } = require('../utils/token');
+const { generateAccessToken, generateRefreshToken, verifyToken } = require('../utils/token');
 const crypt = require('../utils/crypt');
 const env = require('../config/appConfig');
 const { sendMail } = require('../utils/sendMail');
@@ -97,8 +97,14 @@ const loginUser = async ({ email, password }, req) => {
 };
 
 const refreshAccessToken = async (refreshToken) => {
-  const storedToken = await RefreshToken.findOne({ token: refreshToken });
-  
+  const decoded = verifyToken(refreshToken, env?.JWT_REFRESH_SECRET);
+  if (!decoded || decoded.type !== 'refresh') {
+    const error = new Error('Invalid or expired refresh token');
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const storedToken = await RefreshToken.findOne({ jti: decoded.jti, token: refreshToken });
   if (!storedToken || storedToken.expiresAt < new Date()) {
     const error = new Error('Invalid or expired refresh token');
     error.statusCode = 401;
@@ -106,7 +112,6 @@ const refreshAccessToken = async (refreshToken) => {
   }
 
   const accessToken = generateAccessToken(storedToken.userId, env.JWT_SECRET, env.ACCESS_TOKEN_EXPIRE, env.JWT_ALGORITHM);
-  
   return { accessToken };
 };
 

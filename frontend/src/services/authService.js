@@ -1,9 +1,40 @@
 import api from './api';
+import { IS_TOKEN_MODE, tokenStorage } from '../config/authConfig';
 
 export const authService = {
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password });
+    if (IS_TOKEN_MODE) {
+      const { accessToken, refreshToken } = response.data?.data || {};
+      if (accessToken) tokenStorage.setTokens(accessToken, refreshToken);
+    }
     return response.data;
+  },
+
+  register: async (email, password, mobile) => {
+    const response = await api.post('/auth/register', { email, password, mobile });
+    if (IS_TOKEN_MODE) {
+      const { accessToken, refreshToken } = response.data?.data || {};
+      if (accessToken) tokenStorage.setTokens(accessToken, refreshToken);
+    }
+    return response.data;
+  },
+
+  logout: async () => {
+    const refreshToken = IS_TOKEN_MODE ? tokenStorage.getRefresh() : null;
+    const body = refreshToken ? { refreshToken } : {};
+    const response = await api.post('/auth/logout', body);
+    if (IS_TOKEN_MODE) tokenStorage.clearTokens();
+    return response.data;
+  },
+
+  checkAuth: async () => {
+    try {
+      const response = await api.get('/auth/me');
+      return response.data;
+    } catch {
+      return null;
+    }
   },
 
   getOAuthProviders: () => {
@@ -17,25 +48,6 @@ export const authService = {
       ? import.meta.env.VITE_API_BASE_URL_PROD
       : import.meta.env.VITE_API_BASE_URL_DEV;
     window.location.href = `${base.replace(/\/$/, '')}/auth/${provider}`;
-  },
-
-  register: async (email, password) => {
-    const response = await api.post('/auth/register', { email, password });
-    return response.data;
-  },
-
-  logout: async () => {
-    const response = await api.post('/auth/logout');
-    return response.data;
-  },
-
-  checkAuth: async () => {
-    try {
-      const response = await api.get('/auth/me');
-      return response.data;
-    } catch {
-      return null;
-    }
   },
 
   forgotPassword: async (email) => {

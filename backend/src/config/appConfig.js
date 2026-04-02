@@ -21,6 +21,8 @@ const envSchema = Joi.object({
     ACCESS_TOKEN_AGE: Joi.number().optional(),
     RESET_TOKEN_AGE: Joi.number().optional(),
 
+    AUTH_BASE: Joi.string().valid('cookie', 'token').default('cookie'),
+
     AWS_ACCESS_KEY_ID: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
     AWS_SECRET_ACCESS_KEY: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
     AWS_REGION: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
@@ -55,11 +57,9 @@ const { error, value } = envSchema.validate(process.env);
 if (error) {
     console.error(`[Config] Validation error: ${error.message}`);
     module.exports = null;
-    return;
-}
+} else {
 
-
-const env = {
+module.exports = {
     PORT: value.PORT,
     NODE_ENV: value.NODE_ENV,
     BASE_URL: value.BASE_URL,
@@ -81,7 +81,9 @@ const env = {
     ACCESS_TOKEN_AGE: value.ACCESS_TOKEN_AGE,
     RESET_TOKEN_AGE: value.RESET_TOKEN_AGE,
 
-    // AWS 
+    AUTH_BASE: value.AUTH_BASE,
+
+    // AWS
     AWS_ACCESS_KEY_ID: value.AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: value.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: value.AWS_REGION,
@@ -108,4 +110,4 @@ const env = {
     FACEBOOK_CALLBACK_URL: value.FACEBOOK_CALLBACK_URL,
 };
 
-module.exports = env;
+}

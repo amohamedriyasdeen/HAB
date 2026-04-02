@@ -1,0 +1,10 @@
+process.env.NODE_ENV            = 'test';
+process.env.PORT                = '9999';
+process.env.BASE_URL            = 'http://localhost:9999';
+process.env.FRONTEND_URL        = 'http://localhost:5173';
+process.env.ALLOWED_ORIGINS     = 'http://localhost:5173';
+process.env.MONGODB_URI         = 'mongodb://localhost:27017';
+process.env.DATABASE_NAME       = 'hab_test';
+process.env.JWT_SECRET          = 'test_jwt_secret_32chars_minimum!!';
+process.env.JWT_REFRESH_SECRET  = 'test_refresh_secret_32chars_min!!';
+process.env.AUTH_BASE           = 'token';

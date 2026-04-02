@@ -3,10 +3,12 @@ const env = require('../config/appConfig');
 const User = require('../models/user.model');
 
 exports.authCheck = async (req, res, next) => {
+  const isCookie = env?.AUTH_BASE === 'cookie';
   const header = req.headers.authorization || '';
   const [scheme, tokenFromHeader] = header.split(' ');
-  const tokenFromCookie = req.cookies?.accessToken;
-  const token = scheme === 'Bearer' && tokenFromHeader ? tokenFromHeader : tokenFromCookie;
+  const token = isCookie
+    ? req.cookies?.accessToken
+    : (scheme === 'Bearer' && tokenFromHeader ? tokenFromHeader : null);
   
   if (!token) {
     const error = new Error('Authorization token missing');

@@ -3,7 +3,9 @@
   "version": "1.0.0",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest --runInBand --forceExit",
+    "test:watch": "jest --watch --runInBand",
+    "test:coverage": "jest --coverage --runInBand --forceExit",
     "start": "node server.js",
     "dev": "nodemon server.js",
     "seed": "node src/database/migrations/seeder.js seed",
@@ -36,6 +38,16 @@
     "path": "^0.12.7"
   },
   "devDependencies": {
-    "nodemon": "^3.1.11"
+    "jest": "^30.3.0",
+    "nodemon": "^3.1.11",
+    "supertest": "^7.2.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"],
+    "globalSetup": "./tests/helpers/globalSetup.js",
+    "globalTeardown": "./tests/helpers/globalTeardown.js",
+    "setupFiles": ["./tests/helpers/setup.js"],
+    "testTimeout": 30000
   }
 }

@@ -11,16 +11,15 @@ const { resolveFileUrl } = require('../utils/fileUpload');
 exports.login = async (req, res, next) => {
   try {
     const { user, accessToken, refreshToken } = await loginUser(req.body, req);
-    setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
-    setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
-    setAuthFlagCookie(res, env.NODE_ENV);
-    return apiResponse.success(res, "Login successful", { 
-      user: {
-        id: user._id,
-        email: user.email,
-        userName: user.userName,
-        roles: user.roles
-      }
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    if (isCookie) {
+      setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
+      setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
+      setAuthFlagCookie(res, env.NODE_ENV);
+    }
+    return apiResponse.success(res, "Login successful", {
+      user: { id: user._id, email: user.email, userName: user.userName, roles: user.roles },
+      ...(!isCookie && { accessToken, refreshToken })
     }, 200);
   } catch (error) {
     next(error);
@@ -30,16 +29,15 @@ exports.login = async (req, res, next) => {
 exports.register = async (req, res, next) => {
   try {
     const { user, accessToken, refreshToken } = await registerUser(req.body, req);
-    setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
-    setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
-    setAuthFlagCookie(res, env.NODE_ENV);
-    return apiResponse.success(res, "Registration successful", { 
-      user: {
-        id: user._id,
-        email: user.email,
-        userName: user.userName,
-        roles: user.roles
-      }
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    if (isCookie) {
+      setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
+      setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
+      setAuthFlagCookie(res, env.NODE_ENV);
+    }
+    return apiResponse.success(res, "Registration successful", {
+      user: { id: user._id, email: user.email, userName: user.userName, roles: user.roles },
+      ...(!isCookie && { accessToken, refreshToken })
     }, 201);
   } catch (error) {
     next(error);
@@ -48,16 +46,15 @@ exports.register = async (req, res, next) => {
 
 exports.refreshToken = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    const refreshToken = isCookie ? req.cookies.refreshToken : req.body.refreshToken;
     if (!refreshToken) {
       const error = new Error('Refresh token not found');
       error.statusCode = 401;
       throw error;
     }
-    
     const { accessToken } = await refreshAccessToken(refreshToken);
-    setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
-    
+    if (isCookie) setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
     return apiResponse.success(res, 'Token refreshed successfully', { accessToken }, 200);
   } catch (error) {
     next(error);
@@ -66,7 +63,8 @@ exports.refreshToken = async (req, res, next) => {
 
 exports.logout = async (req, res, next) => {
   try {
-    const refreshToken = req.cookies.refreshToken;
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    const refreshToken = isCookie ? req.cookies.refreshToken : req.body.refreshToken;
     const userId = req.user?.userId;
 
     if (userId) {
@@ -75,9 +73,11 @@ exports.logout = async (req, res, next) => {
       await RefreshToken.deleteOne({ token: refreshToken });
     }
 
-    clearCookies(res, 'accessToken', env.NODE_ENV);
-    clearCookies(res, 'refreshToken', env.NODE_ENV);
-    clearAuthFlagCookie(res, env.NODE_ENV);
+    if (isCookie) {
+      clearCookies(res, 'accessToken', env.NODE_ENV);
+      clearCookies(res, 'refreshToken', env.NODE_ENV);
+      clearAuthFlagCookie(res, env.NODE_ENV);
+    }
 
     return apiResponse.success(res, 'Logged out successfully', {}, 200);
   } catch (error) {
@@ -132,8 +132,13 @@ exports.me = async (req, res, next) => {
 
 exports.verifyToken = async (req, res, next) => {
   try {
-    const accessToken = req.cookies.accessToken || req.headers.authorization?.split(' ')[1];
-    const refreshToken = req.cookies.refreshToken;
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    const accessToken = isCookie
+      ? req.cookies?.accessToken
+      : req.headers.authorization?.split(' ')[1];
+    const refreshToken = isCookie
+      ? req.cookies?.refreshToken
+      : req.body?.refreshToken;
 
     if (!accessToken && !refreshToken) {
       return apiResponse.success(res, 'No tokens found', { user: null, requiresRefresh: false }, 200);
@@ -186,10 +191,15 @@ exports.oauthCallback = async (req, res) => {
   try {
     const { provider, profile } = req.user;
     const { accessToken, refreshToken } = await handleOAuthUser(provider, profile, req);
-    setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
-    setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
-    setAuthFlagCookie(res, env.NODE_ENV);
-    res.redirect(`${env.FRONTEND_URL}/#/oauth/success`);
+    const isCookie = env?.AUTH_BASE === 'cookie';
+    if (isCookie) {
+      setCookies(res, 'accessToken', accessToken, env.NODE_ENV, 15 * 60 * 1000);
+      setCookies(res, 'refreshToken', refreshToken, env.NODE_ENV, 7 * 24 * 60 * 60 * 1000);
+      setAuthFlagCookie(res, env.NODE_ENV);
+      res.redirect(`${env?.FRONTEND_URL}/#/oauth/success`);
+    } else {
+      res.redirect(`${env?.FRONTEND_URL}/#/oauth/success?accessToken=${accessToken}&refreshToken=${refreshToken}`);
+    }
   } catch (error) {
     res.redirect(`${env.FRONTEND_URL}/#/oauth/error?message=${encodeURIComponent(error.message)}`);
   }
