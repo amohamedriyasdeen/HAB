@@ -1,11 +1,14 @@
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
-const env = require('../config/appConfig');
 const { PutObjectCommand, DeleteObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
 const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
 
 const getS3 = () => require('../config/s3Config');
+const getDefaultStorage = () => {
+  const types = require('../config/appConfig')?.STORAGE_TYPE;
+  return Array.isArray(types) && types.includes('s3') ? 's3' : 'public';
+};
 
 // --- Storage detection ---
 // S3 stored value is always an object: { s3_path: 'folder/file.jpg' }
@@ -31,13 +34,13 @@ const diskStorage = multer.diskStorage({
 const uploadSingle = (
   folder,
   fieldName = 'file',
-  storageType = env.STORAGE_TYPE || 'public',
+  storageType = null,
   allowedTypes = ['jpeg', 'jpg', 'png', 'gif', 'webp', 'pdf', 'doc', 'docx']
 ) => (req, res, next) => {
+  const resolved = storageType || getDefaultStorage();
   req._uploadFolder = folder;
-  req._storageType  = storageType;
-
-  const storage = storageType === 's3' ? memoryStorage : diskStorage;
+  req._storageType  = resolved;
+  const storage = resolved === 's3' ? memoryStorage : diskStorage;
 
   const filter = (_, file, cb) => {
     const ext  = path.extname(file.originalname).toLowerCase().replace('.', '');
@@ -51,8 +54,9 @@ const uploadSingle = (
 };
 
 // --- Upload ---
-const uploadFile = async (file, folder, storageType = env.STORAGE_TYPE || 'public') => {
-  if (storageType === 's3') {
+const uploadFile = async (file, folder, storageType = null) => {
+  const resolved = storageType || getDefaultStorage();
+  if (resolved === 's3') {
     const { s3, bucket } = getS3();
     const filename = `${Date.now()}-${file.originalname}`;
     const key = `${folder}/${filename}`;
@@ -90,7 +94,7 @@ const resolveFileUrl = async (stored) => {
     return url;
   }
   if (isLocal(stored)) {
-    return `${env.STATIC_URL}/${stored}`;
+    return `${require('../config/appConfig')?.STATIC_URL}/${stored}`;
   }
   return stored;
 };

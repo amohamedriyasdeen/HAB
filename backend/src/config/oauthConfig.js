@@ -3,8 +3,8 @@ const env = require('./appConfig');
 const PROVIDER_MAP = {
   google: {
     strategy: 'passport-google-oauth20',
-    credentials: { clientID: env.GOOGLE_CLIENT_ID, clientSecret: env.GOOGLE_CLIENT_SECRET },
-    callbackURL: env.GOOGLE_CALLBACK_URL,
+    credentials: { clientID: env?.GOOGLE_CLIENT_ID, clientSecret: env?.GOOGLE_CLIENT_SECRET },
+    callbackURL: env?.GOOGLE_CALLBACK_URL,
     scope: ['profile', 'email'],
     profileMap: (profile) => ({
       oauthId:  profile.id,
@@ -15,8 +15,8 @@ const PROVIDER_MAP = {
   },
   facebook: {
     strategy: 'passport-facebook',
-    credentials: { clientID: env.FACEBOOK_APP_ID, clientSecret: env.FACEBOOK_APP_SECRET },
-    callbackURL: env.FACEBOOK_CALLBACK_URL,
+    credentials: { clientID: env?.FACEBOOK_APP_ID, clientSecret: env?.FACEBOOK_APP_SECRET },
+    callbackURL: env?.FACEBOOK_CALLBACK_URL,
     profileFields: ['id', 'emails', 'name', 'displayName', 'photos'],
     profileMap: (profile) => ({
       oauthId:  profile.id,
@@ -28,7 +28,7 @@ const PROVIDER_MAP = {
 };
 
 // Validate at startup and build active providers
-const activeProviders = env.OAUTH_PROVIDERS.reduce((acc, name) => {
+const activeProviders = (env?.OAUTH_PROVIDERS ?? []).reduce((acc, name) => {
   const config = PROVIDER_MAP[name];
 
   if (!config) {
@@ -44,7 +44,7 @@ const activeProviders = env.OAUTH_PROVIDERS.reduce((acc, name) => {
   ].filter(Boolean);
 
   if (missing.length) {
-    console.error(`[OAuth] "${name}" missing .env keys: ${missing.join(', ')}`);
+    console.error(`[OAuth] "${name}" missing .env keys: ${missing.join(', ')} — skipping.`);
     return acc;
   }
 

@@ -7,13 +7,12 @@ const { validate, validateParams } = require('../validators/validate');
 const { idParamSchema } = require('../validators/param.schema');
 const { uploadSingle } = require('../utils/fileUpload');
 const { updateUserSchema, createUserSchema, updateProfileSchema } = require('../validators/user.schema');
-const env = require('../config/appConfig');
 
 // --- Specific routes first (before /:id wildcard) ---
 router.get('/fetch-all-users', authCheck, checkRole('super-admin'), getUsers);
 router.post('/create', authCheck, checkRole('super-admin'), validate(createUserSchema), createUser);
 router.put('/profile', authCheck,
-  uploadSingle('uploads/profiles', 'file', env.STORAGE_TYPE, ['jpeg', 'jpg', 'png', 'gif', 'webp']),
+  uploadSingle('uploads/profiles', 'file', 'public', ['jpeg', 'jpg', 'png', 'gif', 'webp']),
   validate(updateProfileSchema),
   updateProfile
 );

@@ -15,16 +15,16 @@ const apiResponse = require('./utils/apiResponse');
 const app = express();
 
 // Trust nginx reverse proxy
-if (env.NODE_ENV === 'production') app.set('trust proxy', 1);
+if (env?.NODE_ENV === 'production') app.set('trust proxy', 1);
 
 // Connect DB with error handling
 connectDB().catch(err => {
-  console.log('Database connection failed:', err);
+  console.error('Database connection failed:', err.message);
   process.exit(1);
 });
 
 // CORS configuration for development
-const allowedOrigins = env.ALLOWED_ORIGINS ?? [];
+const allowedOrigins = env?.ALLOWED_ORIGINS ?? [];
 app.use(cors(getCorsOptions(allowedOrigins)));
 
 // Body parser with size limits

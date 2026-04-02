@@ -7,10 +7,11 @@
     "server": "cd backend && npm run dev",
     "client": "cd frontend && npm run dev",
     "install-all": "npm install && cd backend && npm install && cd ../frontend && npm install",
-    "front:build": "cd frontend && npm run build && xcopy dist ..\\dist /E /I /Y",
+    "front:build": "cd frontend && npm run build",
     "seed": "cd backend && node src/database/migrations/seeder.js seed",
     "truncate:all": "cd backend && node src/database/migrations/seeder.js truncate:all",
-    "truncate:model": "cd backend && node src/database/migrations/seeder.js truncate:model"
+    "truncate:model": "cd backend && node src/database/migrations/seeder.js truncate:model",
+    "seed:reset": "npm run truncate:all && npm run seed"
   },
   "devDependencies": {
     "concurrently": "^8.2.2"

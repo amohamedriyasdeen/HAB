@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "seed": "node src/database/migrations/seeder.js seed",
     "truncate:all": "node src/database/migrations/seeder.js truncate:all",
-    "truncate:model": "node src/database/migrations/seeder.js truncate:model"
+    "truncate:model": "node src/database/migrations/seeder.js truncate:model",
+    "seed:reset": "npm run truncate:all && npm run seed"
   },
   "keywords": [],
   "author": "",

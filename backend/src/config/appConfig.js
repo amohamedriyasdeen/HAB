@@ -21,34 +21,41 @@ const envSchema = Joi.object({
     ACCESS_TOKEN_AGE: Joi.number().optional(),
     RESET_TOKEN_AGE: Joi.number().optional(),
 
-    AWS_ACCESS_KEY_ID: Joi.string().optional(),
-    AWS_SECRET_ACCESS_KEY: Joi.string().optional(),
-    AWS_REGION: Joi.string().optional(),
-    AWS_BUCKET: Joi.string().optional(),
-    STORAGE_TYPE: Joi.string().valid('s3', 'public').default('public'),
+    AWS_ACCESS_KEY_ID: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    AWS_SECRET_ACCESS_KEY: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    AWS_REGION: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    AWS_BUCKET: Joi.when('STORAGE_TYPE', { is: Joi.string().exist().pattern(/s3/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    STORAGE_TYPE: Joi.string().custom((val, helpers) => {
+        const types = val.split(',').map(t => t.trim());
+        const invalid = types.filter(t => !['s3', 'public'].includes(t));
+        if (invalid.length) return helpers.error('any.invalid');
+        return val;
+    }).optional(),
 
-    MAIL_MAILER: Joi.string().required(),
-    MAIL_HOST: Joi.string().required(),
-    MAIL_PORT: Joi.number().port().required(),
-    MAIL_USERNAME: Joi.string().required(),
-    MAIL_PASSWORD: Joi.string().required(),
-    MAIL_FROM_ADDRESS: Joi.string().email().required(),
+    MAIL_MAILER: Joi.string().optional(),
+    MAIL_HOST: Joi.string().optional(),
+    MAIL_PORT: Joi.number().port().optional(),
+    MAIL_USERNAME: Joi.string().optional(),
+    MAIL_PASSWORD: Joi.string().optional(),
+    MAIL_FROM_ADDRESS: Joi.string().email().optional(),
     MAIL_FROM_NAME: Joi.string().default('App'),
     MAIL_ENCRYPTION: Joi.string().valid('tls', 'ssl', 'none').default('tls'),
 
     OAUTH_PROVIDERS: Joi.string().optional(),
-    GOOGLE_CLIENT_ID: Joi.string().optional(),
-    GOOGLE_CLIENT_SECRET: Joi.string().optional(),
-    GOOGLE_CALLBACK_URL: Joi.string().uri().optional(),
-    FACEBOOK_APP_ID: Joi.string().optional(),
-    FACEBOOK_APP_SECRET: Joi.string().optional(),
-    FACEBOOK_CALLBACK_URL: Joi.string().uri().optional(),
+    GOOGLE_CLIENT_ID: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/google/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    GOOGLE_CLIENT_SECRET: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/google/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    GOOGLE_CALLBACK_URL: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/google/), then: Joi.string().uri().required(), otherwise: Joi.string().uri().optional() }),
+    FACEBOOK_APP_ID: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/facebook/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    FACEBOOK_APP_SECRET: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/facebook/), then: Joi.string().required(), otherwise: Joi.string().optional() }),
+    FACEBOOK_CALLBACK_URL: Joi.when('OAUTH_PROVIDERS', { is: Joi.string().exist().pattern(/facebook/), then: Joi.string().uri().required(), otherwise: Joi.string().uri().optional() }),
 }).unknown();
 
 const { error, value } = envSchema.validate(process.env);
 
 if (error) {
-    throw new Error(`Config validation error: ${error.message}`);
+    console.error(`[Config] Validation error: ${error.message}`);
+    module.exports = null;
+    return;
 }
 
 
@@ -79,7 +86,7 @@ const env = {
     AWS_SECRET_ACCESS_KEY: value.AWS_SECRET_ACCESS_KEY,
     AWS_REGION: value.AWS_REGION,
     AWS_BUCKET: value.AWS_BUCKET,
-    STORAGE_TYPE: value.STORAGE_TYPE,
+    STORAGE_TYPE: value.STORAGE_TYPE ? value.STORAGE_TYPE.split(',').map(t => t.trim()) : [],
 
     // MAIL
     MAIL_MAILER: value.MAIL_MAILER,
